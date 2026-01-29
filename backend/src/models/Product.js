@@ -27,6 +27,10 @@ const Product = sequelize.define('Product', {
         type: DataTypes.STRING,
         allowNull: true,
     },
+    featured: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+    },
     // Foreign key for Category will be added in associations
 });
 

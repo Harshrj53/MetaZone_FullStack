@@ -2,11 +2,8 @@ const { Sequelize } = require('sequelize');
 require('dotenv').config();
 
 const sequelize = new Sequelize(
-    process.env.DB_NAME || 'metazone',
-    process.env.DB_USER || 'root',
-    process.env.DB_PASSWORD || '',
+    process.env.DATABASE_URL || 'mysql://root:@localhost:3306/metazone',
     {
-        host: process.env.DB_HOST || 'localhost',
         dialect: 'mysql',
         logging: false,
     }

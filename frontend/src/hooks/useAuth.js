@@ -1,0 +1,18 @@
+import { useSelector } from 'react-redux';
+
+/**
+ * Custom hook for accessing authentication state
+ */
+const useAuth = () => {
+    const { user, isAuthenticated, loading } = useSelector((state) => state.auth);
+
+    return {
+        user,
+        isAuthenticated,
+        loading,
+        isAdmin: user?.role === 'admin',
+        userId: user?.id,
+    };
+};
+
+export default useAuth;

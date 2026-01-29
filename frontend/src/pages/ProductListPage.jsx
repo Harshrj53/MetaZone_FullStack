@@ -121,37 +121,72 @@ const ProductListPage = () => {
 
                     {loading ? (
                         <div className="flex justify-center items-center h-64">
-                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+                            <div className="flex flex-col items-center gap-3">
+                                <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+                                <p className="text-gray-600 font-medium">Loading products...</p>
+                            </div>
                         </div>
                     ) : products.length === 0 ? (
-                        <div className="text-center py-12 bg-white rounded-lg shadow-sm">
-                            <p className="text-gray-500 text-lg">No products found.</p>
+                        <div className="text-center py-16 bg-white rounded-xl shadow-sm">
+                            <FaSearch className="mx-auto text-6xl text-gray-300 mb-4" />
+                            <p className="text-gray-500 text-xl font-medium mb-2">No products found</p>
+                            <p className="text-gray-400">Try adjusting your filters or search query</p>
                         </div>
                     ) : (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
                             {products.map((product) => (
-                                <Link key={product.id} to={`/products/${product.id}`} className="bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 group">
-                                    <div className="h-64 overflow-hidden rounded-t-xl bg-gray-100 relative">
+                                <div key={product.id} className="bg-white rounded-xl shadow-sm hover:shadow-2xl transition-all duration-500 overflow-hidden group">
+                                    {/* Featured Badge */}
+                                    {product.featured && (
+                                        <div className="absolute top-3 left-3 z-10">
+                                            <span className="bg-gradient-to-r from-primary to-secondary text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
+                                                Featured
+                                            </span>
+                                        </div>
+                                    )}
+
+                                    {/* Image */}
+                                    <Link to={`/products/${product.id}`} className="block relative h-64 overflow-hidden bg-gray-100">
                                         <img
                                             src={product.imageUrl || 'https://via.placeholder.com/400'}
                                             alt={product.name}
-                                            className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500"
+                                            className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700"
                                         />
                                         {product.stock <= 0 && (
-                                            <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-                                                <span className="text-white font-bold px-4 py-2 border-2 border-white rounded">OUT OF STOCK</span>
+                                            <div className="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center">
+                                                <span className="text-white font-bold text-lg px-6 py-3 border-2 border-white rounded-lg">
+                                                    OUT OF STOCK
+                                                </span>
                                             </div>
                                         )}
-                                    </div>
+                                    </Link>
+
+                                    {/* Content */}
                                     <div className="p-5">
-                                        <p className="text-sm text-gray-500 mb-1">{product.Category?.name}</p>
-                                        <h3 className="text-lg font-semibold text-gray-900 mb-2 truncate">{product.name}</h3>
-                                        <div className="flex justify-between items-center mt-4">
-                                            <span className="text-xl font-bold text-primary">${product.price}</span>
-                                            <span className="text-sm text-gray-500">{product.stock > 0 ? `${product.stock} in stock` : 'Out of stock'}</span>
+                                        <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">{product.Category?.name}</p>
+                                        <Link to={`/products/${product.id}`}>
+                                            <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-1 group-hover:text-primary transition-colors">
+                                                {product.name}
+                                            </h3>
+                                        </Link>
+
+                                        <div className="flex items-center justify-between mt-4">
+                                            <div className="flex flex-col">
+                                                <span className="text-2xl font-bold text-primary">${product.price}</span>
+                                                {product.stock > 0 && product.stock < 10 && (
+                                                    <span className="text-xs text-orange-600 font-medium">Only {product.stock} left!</span>
+                                                )}
+                                            </div>
+
+                                            <Link
+                                                to={`/products/${product.id}`}
+                                                className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-indigo-700 transition-all duration-300 font-medium text-sm shadow-md hover:shadow-lg"
+                                            >
+                                                View
+                                            </Link>
                                         </div>
                                     </div>
-                                </Link>
+                                </div>
                             ))}
                         </div>
                     )}

@@ -134,12 +134,44 @@ exports.logout = async (req, res) => {
 // @route   GET /api/auth/me
 // @access  Private
 exports.getMe = async (req, res) => {
-    const user = await User.findByPk(req.user.id, {
-        attributes: { exclude: ['password'] }
-    });
+    try {
+        let token;
 
-    res.status(200).json({
-        success: true,
-        user,
-    });
+        // Check for token in cookies
+        if (req.cookies.jwt) {
+            token = req.cookies.jwt;
+        }
+
+        if (!token) {
+            return res.status(200).json({
+                success: true,
+                user: null,
+            });
+        }
+
+        // Verify token
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+        const user = await User.findByPk(decoded.id, {
+            attributes: { exclude: ['password'] }
+        });
+
+        if (!user) {
+            return res.status(200).json({
+                success: true,
+                user: null,
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            user,
+        });
+    } catch (error) {
+        // If token invalid, just return null user (don't error out)
+        res.status(200).json({
+            success: true,
+            user: null,
+        });
+    }
 };

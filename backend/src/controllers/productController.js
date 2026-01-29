@@ -10,11 +10,14 @@ exports.getProducts = async (req, res) => {
         const offset = (page - 1) * limit;
 
         const whereClause = {};
+        let categoryInclude = { model: Category, attributes: ['name'] };
 
         if (category) {
-            // Find category id by name or use direct id if provided
-            // Assuming category query param is category ID for simplicity, or we can look up
-            whereClause.categoryId = category;
+            // Find category by name and filter products by that category
+            const foundCategory = await Category.findOne({ where: { name: category } });
+            if (foundCategory) {
+                whereClause.categoryId = foundCategory.id;
+            }
         }
 
         if (search) {
@@ -26,7 +29,7 @@ exports.getProducts = async (req, res) => {
 
         const { count, rows } = await Product.findAndCountAll({
             where: whereClause,
-            include: [{ model: Category, attributes: ['name'] }],
+            include: [categoryInclude],
             order: [[sort, order]],
             limit: parseInt(limit),
             offset: parseInt(offset),
