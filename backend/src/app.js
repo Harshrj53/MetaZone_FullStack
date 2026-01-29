@@ -10,7 +10,27 @@ const app = express();
 
 // Middleware
 app.use(cors({
-    origin: process.env.CORS_ORIGIN || 'http://localhost:5173', // Vite default port
+    origin: (origin, callback) => {
+        const allowedOrigins = [
+            'http://localhost:5173',
+            'http://localhost:5174',
+            'https://meta-zone-full-stack.vercel.app'
+        ];
+
+        if (process.env.CORS_ORIGIN) {
+            allowedOrigins.push(...process.env.CORS_ORIGIN.split(','));
+        }
+
+        // Allow requests with no origin (like mobile apps or curl requests)
+        if (!origin) return callback(null, true);
+
+        if (allowedOrigins.indexOf(origin) !== -1) {
+            callback(null, true);
+        } else {
+            console.log('Blocked by CORS:', origin);
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     credentials: true
 }));
 app.use(express.json());

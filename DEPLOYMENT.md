@@ -48,6 +48,8 @@ We will use **Vercel**.
 3.  Import your GitHub repository.
 4.  **Framework Preset**: Vite
 5.  **Root Directory**: Edit this and select `frontend`.
+    *   **Build Command**: `npm run build` (Vercel usually detects this automatically).
+    *   **Output Directory**: `dist`
 6.  **Environment Variables**:
     *   `VITE_API_URL`: (Your Backend Service URL from Step 2, e.g., `https://metazone-api.onrender.com/api`)
     *   *Note: In your code, you might need to update `src/api/axios.js` to use this variable if it's not already dynamic.*
