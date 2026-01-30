@@ -8,6 +8,9 @@ require('dotenv').config();
 
 const app = express();
 
+// Trust proxy for Render/Vercel (Load Balancer)
+app.set('trust proxy', 1);
+
 // Middleware
 app.use(cors({
     origin: (origin, callback) => {
