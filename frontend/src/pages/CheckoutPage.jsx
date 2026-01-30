@@ -8,8 +8,16 @@ import { toast } from 'react-toastify';
 const CheckoutPage = () => {
     const { items, subtotal } = useSelector((state) => state.cart);
     const { user } = useSelector((state) => state.auth);
+    const { isAuthenticated } = useSelector((state) => state.auth);
     const dispatch = useDispatch();
     const navigate = useNavigate();
+
+    React.useEffect(() => {
+        if (!isAuthenticated) {
+            toast.info('Please log in to checkout');
+            navigate('/login');
+        }
+    }, [isAuthenticated, navigate]);
 
     const [shippingAddress, setShippingAddress] = useState('');
     const [paymentMethod, setPaymentMethod] = useState('Credit Card');

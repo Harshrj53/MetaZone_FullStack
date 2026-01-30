@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { addToCart } from '../redux/slices/cartSlice';
 import axios from '../api/axios';
 import { toast } from 'react-toastify';
@@ -40,7 +40,14 @@ const ProductDetailPage = () => {
         }
     };
 
+    const { isAuthenticated } = useSelector((state) => state.auth);
+
     const handleAddToCart = async () => {
+        if (!isAuthenticated) {
+            toast.info('Please log in to add items to your cart');
+            navigate('/login');
+            return;
+        }
         if (!product) return;
         setAdding(true);
         try {
