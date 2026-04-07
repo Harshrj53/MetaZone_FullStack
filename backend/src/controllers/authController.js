@@ -1,177 +1,44 @@
-const { User, Cart, Referral } = require('../models');
-const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+const prisma = require('../prismaClient');
 
-const generateToken = (id) => {
-    return jwt.sign({ id }, process.env.JWT_SECRET, {
-        expiresIn: process.env.JWT_EXPIRES_IN,
-    });
-};
-
-const sendTokenResponse = (user, statusCode, res) => {
-    const token = generateToken(user.id);
-
-    const options = {
-        expires: new Date(
-            Date.now() + 7 * 24 * 60 * 60 * 1000 // 7 days
-        ),
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
-        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // Needed for cross-domain cookies
-    };
-
-    res
-        .status(statusCode)
-        .cookie('jwt', token, options)
-        .json({
-            success: true,
-            user: {
-                id: user.id,
-                name: user.name,
-                email: user.email,
-                role: user.role,
-                referral_code: user.referral_code,
-                referral_credits: user.referral_credits,
-            },
-        });
-};
-
-// @desc    Register user
-// @route   POST /api/auth/signup
-// @access  Public
-exports.signup = async (req, res) => {
+exports.register = async (req, res) => {
+    const { name, email, password } = req.body;
+    if (!name || !email || !password) {
+        return res.status(400).json({ error: 'All fields are required' });
+    }
     try {
-        const { name, email, password, phone, referralCode } = req.body;
-
-        // Check if user exists
-        const userExists = await User.findOne({ where: { email } });
-        if (userExists) {
-            return res.status(400).json({ message: 'User already exists' });
-        }
-
-        // Handle referral
-        let referrer = null;
-        if (referralCode) {
-            referrer = await User.findOne({ where: { referral_code: referralCode } });
-        }
-
-        // Create user
-        const user = await User.create({
-            name,
-            email,
-            password,
-            phone,
-            referred_by: referrer ? referrer.referral_code : null,
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const user = await prisma.user.create({
+            data: { name, email, password: hashedPassword },
         });
-
-        // Create a cart for the user
-        await Cart.create({ userId: user.id });
-
-        // If referred, credit both users (simple logic: 50 credits each)
-        if (referrer) {
-            // Update referrer credits
-            referrer.referral_credits = parseFloat(referrer.referral_credits) + 50;
-            await referrer.save();
-
-            // Update new user credits
-            user.referral_credits = 50;
-            await user.save();
-
-            // Log referral
-            await Referral.create({
-                referrerId: referrer.id,
-                referredUserId: user.id,
-                status: 'completed',
-            });
-        }
-
-        sendTokenResponse(user, 201, res);
+        res.status(201).json({ message: 'User created' });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Server Error', error: error.message });
+        res.status(400).json({ error: 'Email already exists or invalid data' });
     }
 };
 
-// @desc    Login user
-// @route   POST /api/auth/login
-// @access  Public
 exports.login = async (req, res) => {
+    const { email, password } = req.body;
+    if (!email || !password) {
+        return res.status(400).json({ error: 'Email and password required' });
+    }
     try {
-        const { email, password } = req.body;
-
-        // Validate email & password
-        if (!email || !password) {
-            return res.status(400).json({ message: 'Please provide an email and password' });
+        const user = await prisma.user.findUnique({ where: { email } });
+        if (!user) return res.status(400).json({ error: 'User not found' });
+        if (user.isBlocked) {
+            return res.status(403).json({ error: 'Account is blocked' });
         }
 
-        // Check for user
-        const user = await User.findOne({ where: { email } });
-
-        if (!user || !(await user.validPassword(password))) {
-            return res.status(401).json({ message: 'Invalid credentials' });
+        if (await bcrypt.compare(password, user.password)) {
+            const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '1d' });
+            res.json({ token, user: { id: user.id, name: user.name, email: user.email, role: user.role, isBlocked: user.isBlocked } });
+        } else {
+            res.status(401).json({ error: 'Invalid credentials' });
         }
-
-        sendTokenResponse(user, 200, res);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Server Error' });
-    }
-};
-
-// @desc    Logout user / clear cookie
-// @route   GET /api/auth/logout
-// @access  Private
-exports.logout = async (req, res) => {
-    res.cookie('jwt', 'none', {
-        expires: new Date(Date.now() + 10 * 1000),
-        httpOnly: true,
-    });
-
-    res.status(200).json({ success: true, message: 'Logged out successfully' });
-};
-
-// @desc    Get current logged in user
-// @route   GET /api/auth/me
-// @access  Private
-exports.getMe = async (req, res) => {
-    try {
-        let token;
-
-        // Check for token in cookies
-        if (req.cookies.jwt) {
-            token = req.cookies.jwt;
-        }
-
-        if (!token) {
-            return res.status(200).json({
-                success: true,
-                user: null,
-            });
-        }
-
-        // Verify token
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-        const user = await User.findByPk(decoded.id, {
-            attributes: { exclude: ['password'] }
-        });
-
-        if (!user) {
-            return res.status(200).json({
-                success: true,
-                user: null,
-            });
-        }
-
-        res.status(200).json({
-            success: true,
-            user,
-        });
-    } catch (error) {
-        // If token invalid, just return null user (don't error out)
-        res.status(200).json({
-            success: true,
-            user: null,
-        });
+        res.status(500).json({ error: 'Login failed' });
     }
 };
