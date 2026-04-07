@@ -86,7 +86,7 @@ const HomePage = () => {
             <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <h2 className="text-3xl font-bold text-gray-900 mb-8">Shop by Category</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {['Men', 'Women', 'Electronics', 'Accessories'].map((cat, index) => (
+                    {['Mens', 'Womens', 'Kids', 'Electronics'].map((cat, index) => (
                         <motion.div
                             key={cat}
                             initial={{ opacity: 0, scale: 0.9 }}
@@ -109,6 +109,26 @@ const HomePage = () => {
                             </Link>
                         </motion.div>
                     ))}
+                </div>
+            </section>
+
+            {/* Advertisement Space */}
+            <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <div className="relative rounded-2xl overflow-hidden shadow-2xl bg-gradient-to-r from-orange-400 via-red-500 to-pink-500 text-white">
+                    <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] mix-blend-overlay"></div>
+                    <div className="relative z-10 px-8 py-16 text-center md:text-left md:flex items-center justify-between">
+                        <div className="md:w-2/3">
+                            <span className="bg-white/20 text-white text-sm font-bold uppercase py-1 px-3 rounded-full mb-4 inline-block">Special Offer</span>
+                            <h2 className="text-4xl md:text-5xl font-extrabold mb-4 drop-shadow-md">Summer Clearance Event!</h2>
+                            <p className="text-xl opacity-90 mb-6 drop-shadow-sm">Enjoy up to 50% off select apparel and premium electronics. Limited time only.</p>
+                            <Link to="/products?category=Mens" className="inline-block bg-white text-red-500 font-bold text-lg px-8 py-3 rounded-full hover:bg-gray-100 transition-colors shadow-lg">
+                                Shop the Sale
+                            </Link>
+                        </div>
+                        <div className="hidden md:block w-1/3">
+                            <img src="https://images.unsplash.com/photo-1607083206869-4c7672e72a8a?w=400&q=80" alt="Sale Box" className="rounded-xl shadow-2xl transform rotate-3 hover:rotate-0 transition-transform duration-500" />
+                        </div>
+                    </div>
                 </div>
             </section>
 
