@@ -27,10 +27,13 @@ exports.login = async (req, res) => {
     try {
         const user = await prisma.user.findUnique({ where: { email } });
         if (!user) return res.status(400).json({ error: 'User not found' });
+        if (user.isBlocked) {
+            return res.status(403).json({ error: 'Account is blocked' });
+        }
 
         if (await bcrypt.compare(password, user.password)) {
-            const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-            res.json({ token, user: { id: user.id, name: user.name, email: user.email } });
+            const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '1d' });
+            res.json({ token, user: { id: user.id, name: user.name, email: user.email, role: user.role, isBlocked: user.isBlocked } });
         } else {
             res.status(401).json({ error: 'Invalid credentials' });
         }
