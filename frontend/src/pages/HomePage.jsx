@@ -6,22 +6,34 @@ import { motion } from 'framer-motion';
 import { FaShoppingBag, FaUsers, FaLayerGroup } from 'react-icons/fa';
 
 const HomePage = () => {
-    const [featuredProducts, setFeaturedProducts] = useState([]);
+    const [groupedProducts, setGroupedProducts] = useState({});
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const fetchFeaturedProducts = async () => {
+        const fetchProducts = async () => {
             try {
-                const response = await axios.get('/products?sort=featured&limit=4');
-                setFeaturedProducts(response.data.data.slice(0, 4));
+                const response = await axios.get('/products');
+                const products = response.data.data || [];
+                
+                // Group products by category
+                const grouped = products.reduce((acc, product) => {
+                    const cat = product.category || 'Uncategorized';
+                    if (!acc[cat]) {
+                        acc[cat] = [];
+                    }
+                    acc[cat].push(product);
+                    return acc;
+                }, {});
+                
+                setGroupedProducts(grouped);
             } catch (error) {
-                console.error('Error fetching featured products:', error);
+                console.error('Error fetching products:', error);
             } finally {
                 setLoading(false);
             }
         };
 
-        fetchFeaturedProducts();
+        fetchProducts();
     }, []);
 
     return (
@@ -132,62 +144,80 @@ const HomePage = () => {
                 </div>
             </section>
 
-            {/* Featured Products */}
-            <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex justify-between items-end mb-8">
-                    <h2 className="text-3xl font-bold text-gray-900">Featured Products</h2>
-                    <Link to="/products" className="text-primary font-medium hover:text-indigo-700 transition-colors">
-                        View All &rarr;
-                    </Link>
-                </div>
-
+            {/* Category Blocks (Amazon Style) */}
+            <div className="space-y-16">
                 {loading ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-                        {[...Array(4)].map((_, i) => (
-                            <div key={i} className="bg-white rounded-xl overflow-hidden shadow-sm">
-                                <div className="h-64 bg-gray-200 skeleton"></div>
-                                <div className="p-6 space-y-3">
-                                    <div className="h-4 bg-gray-200 rounded skeleton"></div>
-                                    <div className="h-4 bg-gray-200 rounded w-2/3 skeleton"></div>
+                    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                        <div className="h-8 w-64 bg-gray-200 rounded skeleton mb-6"></div>
+                        <div className="flex gap-6 overflow-hidden">
+                            {[...Array(4)].map((_, i) => (
+                                <div key={i} className="bg-white rounded-xl overflow-hidden shadow-sm min-w-[280px] w-72 shrink-0">
+                                    <div className="h-64 bg-gray-200 skeleton"></div>
+                                    <div className="p-6 space-y-3">
+                                        <div className="h-4 bg-gray-200 rounded skeleton"></div>
+                                        <div className="h-4 bg-gray-200 rounded w-2/3 skeleton"></div>
+                                    </div>
                                 </div>
-                            </div>
-                        ))}
-                    </div>
+                            ))}
+                        </div>
+                    </section>
                 ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-                        {featuredProducts.map((product, index) => (
-                            <motion.div
-                                key={product.id}
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: index * 0.1, duration: 0.5 }}
-                                className="bg-white rounded-xl shadow-sm hover:shadow-2xl transition-all duration-500 overflow-hidden group"
-                            >
-                                <Link to={`/products/${product.id}`} className="block">
-                                    <div className="h-64 overflow-hidden bg-gray-100 relative">
-                                        <img
-                                            src={product.imageUrl}
-                                            alt={product.name}
-                                            className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700"
-                                        />
-                                    </div>
-                                    <div className="p-6">
-                                        <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-1 group-hover:text-primary transition-colors">
-                                            {product.name}
-                                        </h3>
-                                        <div className="flex justify-between items-center">
-                                            <span className="text-2xl font-bold text-primary">${product.price}</span>
-                                            <span className="text-sm font-medium text-gray-500 hover:text-primary transition-colors">
-                                                View Details →
-                                            </span>
+                    Object.entries(groupedProducts).map(([category, products], idx) => (
+                        <section key={category} className="max-w-7xl mx-auto pl-4 sm:pl-6 lg:pl-8 overflow-hidden">
+                            <div className="pr-4 sm:pr-6 lg:pr-8 flex justify-between items-end mb-6">
+                                <h2 className="text-3xl font-bold text-gray-900 border-l-4 border-primary pl-3">{category}</h2>
+                            </div>
+                            
+                            {/* Horizontal scroll container */}
+                            <div className="flex overflow-x-auto gap-6 pb-8 snap-x [&::-webkit-scrollbar]:hidden" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                                {products.slice(0, 8).map((product, index) => (
+                                    <motion.div
+                                        key={product.id}
+                                        initial={{ opacity: 0, y: 20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: index * 0.1, duration: 0.5 }}
+                                        className="bg-white rounded-xl shadow-md hover:shadow-2xl transition-all duration-500 overflow-hidden group min-w-[260px] w-[260px] snap-start shrink-0 flex flex-col"
+                                    >
+                                        <Link to={`/products/${product.id}`} className="block h-full flex flex-col">
+                                            <div className="h-56 overflow-hidden bg-gray-50 relative">
+                                                <img
+                                                    src={product.imageUrl}
+                                                    alt={product.name}
+                                                    className="w-full h-full object-contain p-4 transform group-hover:scale-110 transition-transform duration-700"
+                                                />
+                                            </div>
+                                            <div className="p-5 flex-grow flex flex-col justify-between border-t border-gray-100">
+                                                <h3 className="text-md font-semibold text-gray-800 mb-2 line-clamp-2 group-hover:text-primary transition-colors">
+                                                    {product.name}
+                                                </h3>
+                                                <span className="text-2xl font-bold text-gray-900">${product.price}</span>
+                                            </div>
+                                        </Link>
+                                    </motion.div>
+                                ))}
+                                
+                                {/* "See More" Card at the end */}
+                                <motion.div
+                                    initial={{ opacity: 0, x: 20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: Math.min(products.length * 0.1, 0.5), duration: 0.5 }}
+                                    className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 min-w-[200px] w-[200px] snap-start shrink-0 flex items-center justify-center mr-8 border-2 border-transparent hover:border-primary cursor-pointer group"
+                                >
+                                    <Link to={`/products?category=${category}`} className="w-full h-full flex flex-col items-center justify-center p-6">
+                                        <div className="bg-gray-50 text-primary w-16 h-16 rounded-full flex items-center justify-center mb-4 shadow-sm group-hover:scale-110 group-hover:bg-primary group-hover:text-white transition-all">
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                                            </svg>
                                         </div>
-                                    </div>
-                                </Link>
-                            </motion.div>
-                        ))}
-                    </div>
+                                        <h3 className="font-bold text-gray-900 group-hover:text-primary transition-colors">See more</h3>
+                                        <p className="text-sm text-gray-500 mt-1">{category}</p>
+                                    </Link>
+                                </motion.div>
+                            </div>
+                        </section>
+                    ))
                 )}
-            </section>
+            </div>
 
             {/* Promo Section */}
             <section className="bg-gradient-to-r from-primary/10 via-indigo-50 to-secondary/10 py-16">
