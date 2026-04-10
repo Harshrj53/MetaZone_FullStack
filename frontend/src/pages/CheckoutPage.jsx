@@ -29,8 +29,9 @@ const CheckoutPage = () => {
     const handleApplyDiscount = async () => {
         if (!discountCode) return;
         try {
-            const response = await axios.post('/discounts/validate', { code: discountCode });
-            const discount = response.data.data;
+            const response = await api.post('/discounts/validate', { code: discountCode });
+            const data = response.data;
+            const discount = data.data || data;
             const amount = (subtotal * discount.discountPercentage) / 100;
             setDiscountAmount(amount);
             toast.success(`Discount applied: ${discount.discountPercentage}% off`);

@@ -13,11 +13,11 @@ const ProfilePage = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const ordersRes = await axios.get('/orders');
-                setOrders(ordersRes.data.data);
+                const ordersRes = await api.get('/orders');
+                setOrders(Array.isArray(ordersRes.data) ? ordersRes.data : (ordersRes.data.data || []));
 
-                const referralsRes = await axios.get('/referrals');
-                setReferrals(referralsRes.data.data);
+                const referralsRes = await api.get('/referrals');
+                setReferrals(Array.isArray(referralsRes.data) ? referralsRes.data : (referralsRes.data.data || []));
             } catch (error) {
                 console.error('Error fetching profile data:', error);
             }

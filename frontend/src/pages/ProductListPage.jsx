@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
-import axios from '../api/axios';
+import api from '../api/axios';
 import { FaFilter, FaSearch } from 'react-icons/fa';
 
 const ProductListPage = () => {
@@ -32,8 +32,9 @@ const ProductListPage = () => {
                     url = `/products?${query}`;
                 }
 
-                const response = await axios.get(url);
-                setProducts(response.data.data);
+                const response = await api.get(url);
+                const data = response.data;
+                setProducts(Array.isArray(data) ? data : (data.data || []));
             } catch (error) {
                 console.error('Error fetching products:', error);
             } finally {

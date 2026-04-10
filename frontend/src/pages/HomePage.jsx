@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
-import axios from '../api/axios';
+import api from '../api/axios';
 import { motion } from 'framer-motion';
 import { FaShoppingBag, FaUsers, FaLayerGroup } from 'react-icons/fa';
 
@@ -12,8 +12,8 @@ const HomePage = () => {
     useEffect(() => {
         const fetchProducts = async () => {
             try {
-                const response = await axios.get('/products');
-                const products = response.data.data || [];
+                const response = await api.get('/products');
+                const products = Array.isArray(response.data) ? response.data : (response.data.products || []);
                 
                 // Group products by category
                 const grouped = products.reduce((acc, product) => {

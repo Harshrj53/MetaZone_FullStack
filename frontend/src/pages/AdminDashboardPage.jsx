@@ -29,16 +29,16 @@ const AdminDashboardPage = () => {
         setLoading(true);
         try {
             if (activeTab === 'products') {
-                const res = await axios.get('/products?limit=100');
-                setProducts(res.data.data);
-                const catRes = await axios.get('/categories');
-                setCategories(catRes.data.data);
+                const res = await api.get('/products?limit=100');
+                setProducts(Array.isArray(res.data) ? res.data : (res.data.data || []));
+                const catRes = await api.get('/categories');
+                setCategories(Array.isArray(catRes.data) ? catRes.data : (catRes.data.data || []));
             } else if (activeTab === 'categories') {
-                const res = await axios.get('/categories');
-                setCategories(res.data.data);
+                const res = await api.get('/categories');
+                setCategories(Array.isArray(res.data) ? res.data : (res.data.data || []));
             } else if (activeTab === 'orders') {
-                const res = await axios.get('/orders/admin');
-                setOrders(res.data.data);
+                const res = await api.get('/orders/admin');
+                setOrders(Array.isArray(res.data) ? res.data : (res.data.data || []));
             }
         } catch (error) {
             console.error(error);
@@ -103,10 +103,10 @@ const AdminDashboardPage = () => {
         e.preventDefault();
         try {
             if (editingItem) {
-                await axios.put(`/categories/${editingItem.id}`, categoryForm);
+                await api.put(`/categories/${editingItem.id}`, categoryForm);
                 toast.success('Category updated');
             } else {
-                await axios.post('/categories', categoryForm);
+                await api.post('/categories', categoryForm);
                 toast.success('Category created');
             }
             setShowCategoryModal(false);

@@ -4,7 +4,8 @@ import api from '../../api/axios';
 export const fetchCart = createAsyncThunk('cart/fetchCart', async (_, { rejectWithValue }) => {
     try {
         const response = await api.get('/cart');
-        return response.data.data;
+        const data = response.data;
+        return Array.isArray(data) ? { items: data, subtotal: data.reduce((acc, item) => acc + (item.price * item.quantity), 0) } : (data.data || { items: [], subtotal: 0 });
     } catch (error) {
         return rejectWithValue(error.response.data.message || 'Failed to fetch cart');
     }
