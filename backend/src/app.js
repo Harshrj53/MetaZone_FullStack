@@ -8,9 +8,11 @@ const adminRoutes = require('./routes/adminRoutes');
 const app = express();
 
 app.use(cors({
-    origin: function (origin, callback) {
-        callback(null, true);
-    },
+    origin: [
+        'https://meta-zone-full-stack.vercel.app',
+        'http://localhost:5173',
+        'http://localhost:3000'
+    ],
     credentials: true
 }));
 app.use(express.json());

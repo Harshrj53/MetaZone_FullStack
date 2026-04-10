@@ -1,21 +1,22 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ShoppingCart } from 'lucide-react';
+import api from '../api/axios';
 
 export default function Home({ addToCart }) {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
 
     useEffect(() => {
-        // Use imported environment variable
-        fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/products`)
-            .then(res => res.json())
-            .then(data => {
-                if (Array.isArray(data)) setProducts(data);
+        api.get('/products')
+            .then(res => {
+                if (Array.isArray(res.data)) setProducts(res.data);
                 setLoading(false);
             })
             .catch(err => {
-                console.error(err);
+                console.error('Failed to load products:', err);
+                setError('Failed to load products. Please try again later.');
                 setLoading(false);
             });
     }, []);
@@ -24,6 +25,10 @@ export default function Home({ addToCart }) {
         <div className="flex justify-center items-center h-96">
             <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-indigo-600"></div>
         </div>
+    );
+
+    if (error) return (
+        <div className="text-center py-20 text-red-500 text-lg">{error}</div>
     );
 
     return (

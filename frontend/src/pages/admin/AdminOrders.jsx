@@ -1,14 +1,15 @@
 import { useEffect, useState } from 'react';
+import api from '../../api/axios';
 
 export default function AdminOrders() {
     const [orders, setOrders] = useState([]);
 
     const fetchOrders = () => {
-        fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/admin/orders`, {
+        api.get('/admin/orders', {
             headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
         })
-        .then(res => res.json())
-        .then(data => Array.isArray(data) && setOrders(data));
+        .then(res => Array.isArray(res.data) && setOrders(res.data))
+        .catch(err => console.error('Failed to fetch orders:', err));
     };
 
     useEffect(() => {
@@ -16,13 +17,8 @@ export default function AdminOrders() {
     }, []);
 
     const updateStatus = async (id, status) => {
-        await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/admin/orders/${id}/status`, {
-            method: 'PATCH',
-            headers: { 
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${localStorage.getItem('token')}`
-            },
-            body: JSON.stringify({ status })
+        await api.patch(`/admin/orders/${id}/status`, { status }, {
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
         });
         fetchOrders();
     };

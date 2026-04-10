@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import api from '../api/axios';
 
 export default function Register() {
     const [name, setName] = useState('');
@@ -12,19 +13,12 @@ export default function Register() {
         e.preventDefault();
         setError('');
         try {
-            const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/auth/register`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, email, password }),
-            });
-            const data = await res.json();
-            if (res.ok) {
-                navigate('/login');
-            } else {
-                setError(data.error);
-            }
+            await api.post('/auth/register', { name, email, password });
+            navigate('/login');
         } catch (err) {
-            setError('Something went wrong. Please check your connection.');
+            const msg = err.response?.data?.error || err.response?.data?.message || 'Something went wrong. Please check your connection.';
+            setError(msg);
+            console.error('Register error:', err);
         }
     };
 

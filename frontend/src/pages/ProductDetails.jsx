@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, ShoppingCart } from 'lucide-react';
+import api from '../api/axios';
 
 export default function ProductDetails({ addToCart }) {
     const { id } = useParams();
@@ -8,14 +9,13 @@ export default function ProductDetails({ addToCart }) {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/products/${id}`)
-            .then(res => res.json())
-            .then(data => {
-                if (data.error) setProduct(null);
-                else setProduct(data);
+        api.get(`/products/${id}`)
+            .then(res => {
+                if (res.data.error) setProduct(null);
+                else setProduct(res.data);
                 setLoading(false);
             })
-            .catch(err => setLoading(false));
+            .catch(() => setLoading(false));
     }, [id]);
 
     if (loading) return (

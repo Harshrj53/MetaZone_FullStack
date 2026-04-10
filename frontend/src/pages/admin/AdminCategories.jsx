@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
+import api from '../../api/axios';
 
 export default function AdminCategories() {
     const [categories, setCategories] = useState([]);
@@ -7,11 +8,11 @@ export default function AdminCategories() {
     const [formData, setFormData] = useState({ name: '', description: '' });
 
     const fetchCategories = () => {
-        fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/admin/categories`, {
+        api.get('/admin/categories', {
             headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
         })
-        .then(res => res.json())
-        .then(data => Array.isArray(data) && setCategories(data));
+        .then(res => Array.isArray(res.data) && setCategories(res.data))
+        .catch(err => console.error('Failed to fetch categories:', err));
     };
 
     useEffect(() => {
@@ -20,8 +21,7 @@ export default function AdminCategories() {
 
     const handleDelete = async (id) => {
         if (!confirm('Delete category?')) return;
-        await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/admin/categories/${id}`, {
-            method: 'DELETE',
+        await api.delete(`/admin/categories/${id}`, {
             headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
         });
         fetchCategories();
@@ -29,13 +29,8 @@ export default function AdminCategories() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/admin/categories`, {
-            method: 'POST',
-            headers: { 
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${localStorage.getItem('token')}`
-            },
-            body: JSON.stringify(formData)
+        await api.post('/admin/categories', formData, {
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
         });
         setFormData({ name: '', description: '' });
         setShowForm(false);

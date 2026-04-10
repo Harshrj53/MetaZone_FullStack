@@ -1,19 +1,20 @@
 import { useEffect, useState } from 'react';
 import { ShieldAlert, ShieldCheck } from 'lucide-react';
+import api from '../../api/axios';
 
 export default function AdminUsers() {
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
 
     const fetchUsers = () => {
-        fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/admin/users`, {
+        api.get('/admin/users', {
             headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
         })
-        .then(res => res.json())
-        .then(data => {
-            setUsers(data);
+        .then(res => {
+            setUsers(res.data);
             setLoading(false);
-        });
+        })
+        .catch(() => setLoading(false));
     };
 
     useEffect(() => {
@@ -22,8 +23,7 @@ export default function AdminUsers() {
 
     const toggleBlock = async (id, currentStatus) => {
         const action = currentStatus ? 'unblock' : 'block';
-        await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/admin/users/${id}/${action}`, {
-            method: 'PATCH',
+        await api.patch(`/admin/users/${id}/${action}`, {}, {
             headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
         });
         fetchUsers();

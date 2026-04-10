@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
+import api from '../../api/axios';
 
 export default function AdminProducts() {
     const [products, setProducts] = useState([]);
@@ -11,13 +12,15 @@ export default function AdminProducts() {
     });
 
     const fetchData = () => {
-        fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/products`)
-            .then(res => res.json()).then(data => Array.isArray(data) && setProducts(data));
-            
-        fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/admin/categories`, {
+        api.get('/products')
+            .then(res => Array.isArray(res.data) && setProducts(res.data))
+            .catch(err => console.error('Failed to fetch products:', err));
+
+        api.get('/admin/categories', {
             headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
         })
-        .then(res => res.json()).then(data => Array.isArray(data) && setCategories(data));
+        .then(res => Array.isArray(res.data) && setCategories(res.data))
+        .catch(err => console.error('Failed to fetch categories:', err));
     };
 
     useEffect(() => {
@@ -26,8 +29,7 @@ export default function AdminProducts() {
 
     const handleDelete = async (id) => {
         if (!confirm('Are you sure you want to delete this product?')) return;
-        await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/admin/products/${id}`, {
-            method: 'DELETE',
+        await api.delete(`/admin/products/${id}`, {
             headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
         });
         fetchData();
@@ -35,13 +37,8 @@ export default function AdminProducts() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/admin/products`, {
-            method: 'POST',
-            headers: { 
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${localStorage.getItem('token')}`
-            },
-            body: JSON.stringify(formData)
+        await api.post('/admin/products', formData, {
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
         });
         setFormData({ name: '', description: '', price: '', stock: '', imageUrl: '', categoryId: '' });
         setShowForm(false);

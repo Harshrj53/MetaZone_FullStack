@@ -1,22 +1,20 @@
 import { useEffect, useState } from 'react';
 import { Users, ShoppingBag, List, ShoppingCart, DollarSign, UserX } from 'lucide-react';
+import api from '../../api/axios';
 
 export default function AdminDashboard() {
     const [stats, setStats] = useState(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/admin/stats`, {
-            headers: {
-                'Authorization': `Bearer ${localStorage.getItem('token')}`
-            }
+        api.get('/admin/stats', {
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
         })
-        .then(res => res.json())
-        .then(data => {
-            setStats(data);
+        .then(res => {
+            setStats(res.data);
             setLoading(false);
         })
-        .catch(err => setLoading(false));
+        .catch(() => setLoading(false));
     }, []);
 
     if (loading) return <div className="animate-pulse bg-gray-200 dark:bg-gray-800 h-96 rounded-3xl"></div>;

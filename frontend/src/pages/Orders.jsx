@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import api from '../api/axios';
 
 export default function Orders({ user }) {
     const [orders, setOrders] = useState([]);
@@ -6,17 +7,14 @@ export default function Orders({ user }) {
 
     useEffect(() => {
         if (!user) return;
-        fetch('http://localhost:3000/orders/my', {
-            headers: {
-                'Authorization': `Bearer ${localStorage.getItem('token')}`
-            }
+        api.get('/orders/my', {
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
         })
-            .then(res => res.json())
-            .then(data => {
-                if (Array.isArray(data)) setOrders(data);
+            .then(res => {
+                if (Array.isArray(res.data)) setOrders(res.data);
                 setLoading(false);
             })
-            .catch(err => setLoading(false));
+            .catch(() => setLoading(false));
     }, [user]);
 
     if (!user) return <div className="text-center py-20 text-gray-500">Please login to view orders.</div>;

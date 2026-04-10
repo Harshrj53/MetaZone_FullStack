@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import api from '../api/axios';
 
 export default function Login({ setUser }) {
     const [email, setEmail] = useState('');
@@ -11,26 +12,19 @@ export default function Login({ setUser }) {
         e.preventDefault();
         setError('');
         try {
-            const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/auth/login`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password }),
-            });
-            const data = await res.json();
-            if (res.ok) {
-                localStorage.setItem('token', data.token);
-                localStorage.setItem('user', JSON.stringify(data.user));
-                setUser(data.user);
-                if (data.user.role === 'admin') {
-                    navigate('/admin/dashboard');
-                } else {
-                    navigate('/');
-                }
+            const { data } = await api.post('/auth/login', { email, password });
+            localStorage.setItem('token', data.token);
+            localStorage.setItem('user', JSON.stringify(data.user));
+            setUser(data.user);
+            if (data.user.role === 'admin') {
+                navigate('/admin/dashboard');
             } else {
-                setError(data.error);
+                navigate('/');
             }
         } catch (err) {
-            setError('Something went wrong. Please check your connection.');
+            const msg = err.response?.data?.error || err.response?.data?.message || 'Something went wrong. Please check your connection.';
+            setError(msg);
+            console.error('Login error:', err);
         }
     };
 

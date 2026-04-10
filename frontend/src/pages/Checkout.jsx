@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import api from '../api/axios';
 
 export default function Checkout({ cart, user, clearCart }) {
     const navigate = useNavigate();
@@ -13,22 +14,14 @@ export default function Checkout({ cart, user, clearCart }) {
         }
         setLoading(true);
         try {
-            const res = await fetch('http://localhost:3000/orders', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                },
-                body: JSON.stringify({ total, items: cart }),
+            await api.post('/orders', { total, items: cart }, {
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
             });
-            if (res.ok) {
-                clearCart();
-                navigate('/orders');
-            } else {
-                alert('Checkout failed');
-            }
+            clearCart();
+            navigate('/orders');
         } catch (err) {
-            alert('Error processing order');
+            console.error('Checkout error:', err);
+            alert(err.response?.data?.message || 'Error processing order');
         } finally {
             setLoading(false);
         }
